@@ -1,0 +1,21 @@
+[project]
+name = "rent-project"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Benedikt Stranak", email = "benedikt.stranak@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "pandas>=3.0.5",
+]
+
+[project.scripts]
+rent-project = "rent_project:main"
+build-dataset = "rent_project.pipelines.build_dataset:main"
+fit-models = "rent_project.pipelines.fit_models:main"
+
+[build-system]
+requires = ["uv_build>=0.12.0,<0.13.0"]
+build-backend = "uv_build"
