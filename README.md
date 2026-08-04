@@ -9,11 +9,15 @@ This repository does not include the data used in the analysis, as it is license
 This project consists of three stages:
 
 01 Assembling dataset
+
 uv run build-dataset
 
 02 Modelling rental and price values
-uv run fit-models 
+
+uv run fit-models
+
 Plus a notebook for model diagnostics and comparison
 
 03 Analysis
+
 A notebook
