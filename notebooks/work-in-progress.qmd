@@ -1,0 +1,62 @@
+---
+title: "Exploratory / development"
+format: html
+---
+
+Setup
+
+```{python}
+from pathlib import Path
+import pandas as pd
+
+from rent_project.config import DATA_DIRECTORY
+```
+
+```{python}
+COLUMNS = (
+    pd.read_csv(
+        DATA_DIRECTORY / "raw" / "address-base-plus" /"addressbase-plus-post-e-39-header.csv",
+        header=None,
+        dtype=str
+    )
+    .iloc[0]
+    .tolist()
+)
+
+INT_COLUMNS = [
+    'UPRN','UDPRN','PARENT_UPRN','LOCAL_CUSTODIAN_CODE','BUILDING_NUMBER','SAO_START_NUMBER','SAO_END_NUMBER','PAO_START_NUMBER','PAO_END_NUMBER','USRN','OS_ADDRESS_TOID_VERSION','OS_ROADLINK_TOID_VERSION','OS_TOPO_TOID_VERSION','VOA_CT_RECORD','VOA_NDR_RECORD','MULTI_OCC_COUNT'
+]
+
+FLOAT_COLUMNS = ['X_COORDINATE', 'Y_COORDINATE', 'LATITUDE', 'LONGITUDE']
+
+DATE_COLUMNS = [
+    'STATE_DATE','LA_START_DATE','LAST_UPDATE_DATE','ENTRY_DATE','RM_START_DATE'
+]
+
+STRING_COLUMNS = [
+    c for c in COLUMNS
+    if c not in INT_COLUMNS + FLOAT_COLUMNS + DATE_COLUMNS
+]
+
+DTYPES = {
+    **{c: "Int64" for c in INT_COLUMNS},
+    **{c: "float64" for c in FLOAT_COLUMNS},
+    **{c: "string" for c in STRING_COLUMNS},
+}
+
+df1 = pd.read_csv(
+    DATA_DIRECTORY / "raw" / "address-base-plus" / "2026" / "extracted" / "TL2500" / "TL2500.csv",
+    header=None,
+    names=COLUMNS,
+    dtype=DTYPES,
+    parse_dates=DATE_COLUMNS
+)
+
+df2 = pd.read_csv(
+    DATA_DIRECTORY / "raw" / "address-base-plus" / "2026" / "extracted" / "TL3000" / "TL3000.csv",
+    header=None,
+    names=COLUMNS,
+    dtype=DTYPES,
+    parse_dates=DATE_COLUMNS
+)
+```

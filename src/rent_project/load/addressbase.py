@@ -6,9 +6,7 @@ from zipfile import ZipFile
 import pandas as pd
 
 def unzip_all(zip_dir, extract_dir):
-    """Extract every .zip in zip_dir into extract_dir
-    unless a .csv in exit_dir already exists
-    """
+    """Extract every .zip in zip_dir into extract_dir unless it already exists in exit_dir"""
 
     extract_dir.mkdir(parents=True, exist_ok=True)
 
@@ -24,8 +22,7 @@ def unzip_all(zip_dir, extract_dir):
         with ZipFile(zip_path) as zf:
             zf.extractall(target)
 
-
-# continue from here on
+# continue from here - started to write addressbase loading in notebook
 
 def load_and_append(extract_dir):
     """Read every extracted CSV and concatenate into a single DataFrame.

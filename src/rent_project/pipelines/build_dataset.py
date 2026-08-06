@@ -1,7 +1,6 @@
 """Orchestration only"""
 
 from rent_project.config import DATA_DIRECTORY
-
 from rent_project.load.addressbase import unzip_all
 
 def main():
