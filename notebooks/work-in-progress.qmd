@@ -8,10 +8,14 @@ Setup
 ```{python}
 from pathlib import Path
 import pandas as pd
+import pandas.testing as pdt
 
 from rent_project.config import DATA_DIRECTORY
+from rent_project.config import ADDRESS_BASE_DIRECTORY
+from rent_project.load.addressbase import load_schema
 ```
 
+How to read in AddressBase tile
 ```{python}
 COLUMNS = (
     pd.read_csv(
@@ -49,7 +53,7 @@ df1 = pd.read_csv(
     header=None,
     names=COLUMNS,
     dtype=DTYPES,
-    parse_dates=DATE_COLUMNS
+    parse_dates=DATE_COLUMNS,
 )
 
 df2 = pd.read_csv(
@@ -59,4 +63,32 @@ df2 = pd.read_csv(
     dtype=DTYPES,
     parse_dates=DATE_COLUMNS
 )
+
+```
+
+How to load and combine
+```{python}
+csv_paths = sorted(
+    Path(
+        DATA_DIRECTORY / "raw" / "address-base-plus" / "2026" / "extracted"
+    )
+    .rglob("*.csv")
+)
+
+len(csv_paths)
+
+df_combined = pd.concat([df1, df2], ignore_index=True)
+```
+
+Examine merged AddressBase 2026
+```{python}
+
+schema = load_schema(DATA_DIRECTORY / "raw" / "address-base-plus" / "addressbase-plus-post-e-39-header.csv")
+
+addressbase2026 = pd.read_csv(
+    ADDRESS_BASE_DIRECTORY / "2026" / "addressbase-plus-2026.csv",
+    dtype=schema["dtypes"],
+    parse_dates=schema["date_columns"]
+)
+
 ```
