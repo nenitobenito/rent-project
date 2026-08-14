@@ -86,9 +86,27 @@ Examine merged AddressBase 2026
 schema = load_schema(DATA_DIRECTORY / "raw" / "address-base-plus" / "addressbase-plus-post-e-39-header.csv")
 
 addressbase2026 = pd.read_csv(
-    ADDRESS_BASE_DIRECTORY / "2026" / "addressbase-plus-2026.csv",
+    ADDRESS_BASE_DIRECTORY / "2026" / "greater_london_2026_abplus.csv",
     dtype=schema["dtypes"],
     parse_dates=schema["date_columns"]
 )
+
+# Is there anything outside Greater London?
+print(addressbase2026['ADMINISTRATIVE_AREA'].value_counts())
+
+```
+
+Comparing schemes
+```{python}
+old = pd.read_csv(
+    ADDRESS_BASE_DIRECTORY / "addressbase-plus-pre-e-39-header.csv",header=None,dtype=str).iloc[0].tolist()
+new = pd.read_csv(
+    ADDRESS_BASE_DIRECTORY / "addressbase-plus-post-e-39-header.csv",header=None,dtype=str).iloc[0].tolist()
+
+extra_in_old = list(set(old) - set(new))
+print(extra_in_old)
+
+extra_in_new = list(set(new) - set(old))
+print(extra_in_new)
 
 ```
