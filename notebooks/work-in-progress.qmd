@@ -132,5 +132,17 @@ addressbase2011 = pd.read_csv(
 )
 
 addressbase2011['postal_address'].value_counts()
+print(addressbase2021['administrative_area'].value_counts())
 
+
+```
+
+Reading schema
+
+```{python}
+columns = pd.read_csv(
+    ADDRESS_BASE_DIRECTORY / "addressbase-plus-post-e-39-header.csv",
+    header=None,
+    dtype=str).iloc[0].str.lower().tolist()
+ 
 ```
