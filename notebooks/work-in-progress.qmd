@@ -12,7 +12,7 @@ import pandas.testing as pdt
 
 from rent_project.config import DATA_DIRECTORY
 from rent_project.config import ADDRESS_BASE_DIRECTORY
-from rent_project.load.addressbase import load_schema
+from rent_project.load.addressbase import load_schema_new
 ```
 
 How to read in AddressBase tile
@@ -83,7 +83,7 @@ df_combined = pd.concat([df1, df2], ignore_index=True)
 Examine merged AddressBase 2026
 ```{python}
 
-schema = load_schema(DATA_DIRECTORY / "raw" / "address-base-plus" / "addressbase-plus-post-e-39-header.csv")
+schema = load_schema_new(DATA_DIRECTORY / "raw" / "address-base-plus" / "addressbase-plus-post-e-39-header.csv")
 
 addressbase2026 = pd.read_csv(
     ADDRESS_BASE_DIRECTORY / "2026" / "greater_london_2026_abplus.csv",
@@ -108,5 +108,29 @@ print(extra_in_old)
 
 extra_in_new = list(set(new) - set(old))
 print(extra_in_new)
+
+```
+
+Load and examine 2021 AB Plus
+
+```{python}
+
+addressbase2021 = pd.read_csv(
+    ADDRESS_BASE_DIRECTORY / "2021" / "greater_london_2021_abplus.csv"
+)
+
+addressbase2021['addressbase_postal'].value_counts()
+
+```
+
+Load and examine 2011 AB Plus
+
+```{python}
+
+addressbase2011 = pd.read_csv(
+    ADDRESS_BASE_DIRECTORY / "2011" / "greater_london_2011_abplus.csv"
+)
+
+addressbase2011['postal_address'].value_counts()
 
 ```
