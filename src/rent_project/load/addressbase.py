@@ -5,6 +5,8 @@ from zipfile import ZipFile
 
 import pandas as pd
 
+LONDON_BOROUGHS = ['CITY OF WESTMINSTER','TOWER HAMLETS','WANDSWORTH','CROYDON','BARNET','SOUTHWARK','LAMBETH','EALING','BROMLEY','CAMDEN','BRENT','LEWISHAM','NEWHAM','ENFIELD','GREENWICH','HACKNEY','ISLINGTON','HILLINGDON','HARINGEY','WALTHAM FOREST','HOUNSLOW','HAMMERSMITH AND FULHAM','REDBRIDGE','HAVERING','KENSINGTON AND CHELSEA','BEXLEY','MERTON','HARROW','RICHMOND UPON THAMES','BARKING AND DAGENHAM','SUTTON','KINGSTON UPON THAMES','CITY OF LONDON']
+
 # ----------------------------------------
 # Loading AddressBase Plus Schema
 # ----------------------------------------
@@ -78,7 +80,6 @@ def unzip_all(zip_dir, extract_dir):
 
 def load_tile(schema, file_path):
     """Load a single AddressBase Plus tile CSV.
-    Drop addresses outside any of London's 33 local authorities.
     
     Parameters
     -----
@@ -114,8 +115,7 @@ def load_and_concatenate(schema, extract_dir):
 # ----------------------------------------
 
 def load_full_addressbase(schema, file_path):
-    """Load a full AddressBase Plus tile CSV.
-    Drop addresses outside any of London's 33 local authorities.
+    """Load a full AddressBase Plus CSV.
     
     Parameters
     -----
@@ -132,14 +132,12 @@ def load_full_addressbase(schema, file_path):
 
 def clip_greater_london(df):
     """Takes pandas dataframe
-    Returns filtered by administrative_area column.
+    Returns it filtered by administrative_area column.
 
     Parameters
     -----
-    dataframe_object: pandas dataframe with administrative_area column
+    df: pandas dataframe with administrative_area column
     """
-
-    LONDON_BOROUGHS = ['CITY OF WESTMINSTER','TOWER HAMLETS','WANDSWORTH','CROYDON','BARNET','SOUTHWARK','LAMBETH','EALING','BROMLEY','CAMDEN','BRENT','LEWISHAM','NEWHAM','ENFIELD','GREENWICH','HACKNEY','ISLINGTON','HILLINGDON','HARINGEY','WALTHAM FOREST','HOUNSLOW','HAMMERSMITH AND FULHAM','REDBRIDGE','HAVERING','KENSINGTON AND CHELSEA','BEXLEY','MERTON','HARROW','RICHMOND UPON THAMES','BARKING AND DAGENHAM','SUTTON','KINGSTON UPON THAMES','CITY OF LONDON']
 
     df = df[df['administrative_area'].isin(LONDON_BOROUGHS)]
     return df

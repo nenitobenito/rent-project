@@ -1,86 +1,98 @@
 """Orchestration only"""
 
 from rent_project.config import (
-    ADDRESS_BASE_INTERIM_DIRECTORY,
-    ADDRESS_BASE_RAW_DIRECTORY,
+    ADDRESSBASE_DIRECTORY_INTERIM,
+    ADDRESSBASE_DIRECTORY_RAW,
 )
 from rent_project.load.addressbase import (
+    clip_greater_london,
     load_and_concatenate,
+    load_full_addressbase,
     load_schema_new,
     load_schema_old,
     unzip_all,
 )
 
 
-def step_build_addressbase2026():
-    """Extracts, loads, concatenates, AddressBase Plus tiles (2026).
-    Then writes csv.
+def step_build_addressbase2026(addressbase_schema_new):
+    """Extracts zip AddressBase 2026 tiles.
+    Loads all tiles and concatenates them.
+    Then a combined AddressBase 2026 csv.
     Does nothing if the combined CSV already exists.
     """
 
-    output_path = ADDRESS_BASE_RAW_DIRECTORY / "2026" / "greater_london_2026_abplus.csv"
+    output_path = ADDRESSBASE_DIRECTORY_RAW / "2026" / "greater_london_2026_abplus.csv"
 
     # Check if already exists
     if output_path.exists():
-        print("Skiped building 2026 AddressBase Plus (already exists)")
+        print("Skipped building 2026 AddressBase Plus (already exists)")
         return
 
     # Extract zipped tile files
     print("Extracting zip tiles")
     unzip_all(
-        ADDRESS_BASE_RAW_DIRECTORY/ "2026" / "compressed",
-        ADDRESS_BASE_RAW_DIRECTORY / "2026" / "extracted"
+        ADDRESSBASE_DIRECTORY_RAW / "2026" / "compressed",
+        ADDRESSBASE_DIRECTORY_RAW / "2026" / "extracted"
     )
 
     # Load and concatenate all tiles (2026)
     print("Loading and concatenating tiles")
-    schema_new = load_schema_new(ADDRESS_BASE_RAW_DIRECTORY / "addressbase-plus-post-e-39-header.csv")
-    address_base_2026 = load_and_concatenate(
-        schema_new,
-        ADDRESS_BASE_RAW_DIRECTORY / "2026" / "extracted"
+    addressbase_2026 = load_and_concatenate(
+        addressbase_schema_new,
+        ADDRESSBASE_DIRECTORY_RAW / "2026" / "extracted"
     )
 
     # Save 2026 Address Base as csv
     print("Writing 2026 AddressBase Plus (csv)")
-    address_base_2026.to_csv(output_path,index=False)
+    addressbase_2026.to_csv(output_path,index=False)
 
 
-#def step_clip_addressbase_all_years():
-#    """Loads and clips AddressBase Plus 2011, 2021, 2026 to Greater London.
-#    Then writes csv.
-#    Does nothing if the combined CSV already exists.
-#    """
+def step_clip_addressbase_all_years(addressbase_schema_old, addressbase_schema_new):
+    """Loads AddressBase Plus 2011, 2021, 2026.
+    Clips each to Greater London.
+    Writes a new csv for each.
+    Does nothing if the clipped CSVs already exists.
+    """
+    
+    schema_by_year = {
+        2011: addressbase_schema_old,
+        2021: addressbase_schema_new,
+        2026: addressbase_schema_new,
+    }
 
-#    schema_old = load_schema_old(ADDRESS_BASE_RAW_DIRECTORY / "addressbase-plus-pre-e-39-header.csv")
-#    schema_new = load_schema_new(ADDRESS_BASE_RAW_DIRECTORY / "addressbase-plus-post-e-39-header.csv")
+    ADDRESSBASE_DIRECTORY_INTERIM.mkdir(parents=True, exist_ok=True)
+    
+    for year in [2011, 2021, 2026]:
+        output_path = ADDRESSBASE_DIRECTORY_INTERIM / f"greater_london_{year}_abplus_clipped.csv"
+        if output_path.exists():
+            print(f"Skipped clipping {year} AddressBase Plus (already exists)")
+            continue
 
-#    # 2011
-#    output_path = ADDRESS_BASE_INTERIM_DIRECTORY / "greater_london_2011_abplus_clipped.csv"
-#    if output_path.exists():
-#        print("Skiped clipping 2011 AddressBase Plus (already exists)")
-#        return
-#    print("Loading 2021 AddressBase Plus")
+        print(f"Loading {year} AddressBase Plus")
+        addressbase = load_full_addressbase(
+            schema_by_year[year],
+            ADDRESSBASE_DIRECTORY_RAW / str(year) / f"greater_london_{year}_abplus.csv"
+        )
+        print(f"Clipping {year} AddressBase Plus")
+        addressbase = clip_greater_london(addressbase)
+        print(f"Writing {year} AddressBase Plus (clipped csv)")
+        addressbase.to_csv(output_path, index=False)
 
-#   # 2021
-#    output_path = ADDRESS_BASE_INTERIM_DIRECTORY / "greater_london_2021_abplus_clipped.csv"
-#    if output_path.exists():
-#        print("Skiped clipping 2021 AddressBase Plus (already exists)")
-#        return
-
-#    # 2026
-#    output_path = ADDRESS_BASE_INTERIM_DIRECTORY / "greater_london_2026_abplus_clipped.csv"
-#    if output_path.exists():
-#        print("Skiped clipping 2026 AddressBase Plus (already exists)")
-#        return
 
 def main():
-    step_build_addressbase2026()
-    # step_clip_addressbase_all_years()
+
+    addressbase_schema_old = load_schema_old(ADDRESSBASE_DIRECTORY_RAW / "addressbase-plus-pre-e-39-header.csv")
+    addressbase_schema_new = load_schema_new(ADDRESSBASE_DIRECTORY_RAW / "addressbase-plus-post-e-39-header.csv")
+
+    step_build_addressbase2026(addressbase_schema_new)
+    step_clip_addressbase_all_years(addressbase_schema_old, addressbase_schema_new)
+
     # step_load_addressbase_all_years()
     # step_subset_test_area()
     # step_build_addressbase_history()
     # step_filter_residential()
     # next step goes here
+
 
 if __name__ == "__main__":
     main()
