@@ -8,141 +8,93 @@ Setup
 ```{python}
 from pathlib import Path
 import pandas as pd
-import pandas.testing as pdt
 
-from rent_project.config import DATA_DIRECTORY
-from rent_project.config import ADDRESS_BASE_DIRECTORY
-from rent_project.load.addressbase import load_schema_new
+from rent_project.config import (
+    ADDRESSBASE_DIRECTORY_RAW,
+    ADDRESSBASE_DIRECTORY_INTERIM,
+)
+from rent_project.load.addressbase import (
+    load_full_addressbase,
+    load_schema_new,
+    load_schema_old,
+)
 ```
 
-How to read in AddressBase tile
-```{python}
-COLUMNS = (
-    pd.read_csv(
-        DATA_DIRECTORY / "raw" / "address-base-plus" /"addressbase-plus-post-e-39-header.csv",
-        header=None,
-        dtype=str
-    )
-    .iloc[0]
-    .tolist()
-)
-
-INT_COLUMNS = [
-    'UPRN','UDPRN','PARENT_UPRN','LOCAL_CUSTODIAN_CODE','BUILDING_NUMBER','SAO_START_NUMBER','SAO_END_NUMBER','PAO_START_NUMBER','PAO_END_NUMBER','USRN','OS_ADDRESS_TOID_VERSION','OS_ROADLINK_TOID_VERSION','OS_TOPO_TOID_VERSION','VOA_CT_RECORD','VOA_NDR_RECORD','MULTI_OCC_COUNT'
-]
-
-FLOAT_COLUMNS = ['X_COORDINATE', 'Y_COORDINATE', 'LATITUDE', 'LONGITUDE']
-
-DATE_COLUMNS = [
-    'STATE_DATE','LA_START_DATE','LAST_UPDATE_DATE','ENTRY_DATE','RM_START_DATE'
-]
-
-STRING_COLUMNS = [
-    c for c in COLUMNS
-    if c not in INT_COLUMNS + FLOAT_COLUMNS + DATE_COLUMNS
-]
-
-DTYPES = {
-    **{c: "Int64" for c in INT_COLUMNS},
-    **{c: "float64" for c in FLOAT_COLUMNS},
-    **{c: "string" for c in STRING_COLUMNS},
-}
-
-df1 = pd.read_csv(
-    DATA_DIRECTORY / "raw" / "address-base-plus" / "2026" / "extracted" / "TL2500" / "TL2500.csv",
-    header=None,
-    names=COLUMNS,
-    dtype=DTYPES,
-    parse_dates=DATE_COLUMNS,
-)
-
-df2 = pd.read_csv(
-    DATA_DIRECTORY / "raw" / "address-base-plus" / "2026" / "extracted" / "TL3000" / "TL3000.csv",
-    header=None,
-    names=COLUMNS,
-    dtype=DTYPES,
-    parse_dates=DATE_COLUMNS
-)
-
-```
-
-How to load and combine
-```{python}
-csv_paths = sorted(
-    Path(
-        DATA_DIRECTORY / "raw" / "address-base-plus" / "2026" / "extracted"
-    )
-    .rglob("*.csv")
-)
-
-len(csv_paths)
-
-df_combined = pd.concat([df1, df2], ignore_index=True)
-```
-
-Examine merged AddressBase 2026
-```{python}
-
-schema = load_schema_new(DATA_DIRECTORY / "raw" / "address-base-plus" / "addressbase-plus-post-e-39-header.csv")
-
-addressbase2026 = pd.read_csv(
-    ADDRESS_BASE_DIRECTORY / "2026" / "greater_london_2026_abplus.csv",
-    dtype=schema["dtypes"],
-    parse_dates=schema["date_columns"]
-)
-
-# Is there anything outside Greater London?
-print(addressbase2026['ADMINISTRATIVE_AREA'].value_counts())
-
-```
-
-Comparing schemes
-```{python}
-old = pd.read_csv(
-    ADDRESS_BASE_DIRECTORY / "addressbase-plus-pre-e-39-header.csv",header=None,dtype=str).iloc[0].tolist()
-new = pd.read_csv(
-    ADDRESS_BASE_DIRECTORY / "addressbase-plus-post-e-39-header.csv",header=None,dtype=str).iloc[0].tolist()
-
-extra_in_old = list(set(old) - set(new))
-print(extra_in_old)
-
-extra_in_new = list(set(new) - set(old))
-print(extra_in_new)
-
-```
-
-Load and examine 2021 AB Plus
+Examine AddressBase 2011, 2021, 2026 - full and clipped
 
 ```{python}
+#Load schemas
+addressbase_schema_old = load_schema_old(ADDRESSBASE_DIRECTORY_RAW / "addressbase-plus-pre-e-39-header.csv")
+addressbase_schema_new = load_schema_new(ADDRESSBASE_DIRECTORY_RAW / "addressbase-plus-post-e-39-header.csv")
 
-addressbase2021 = pd.read_csv(
-    ADDRESS_BASE_DIRECTORY / "2021" / "greater_london_2021_abplus.csv"
-)
+#Addressbase 2011
+ab2011full = load_full_addressbase(
+    addressbase_schema_old,
+    ADDRESSBASE_DIRECTORY_RAW / "2011" / "greater_london_2011_abplus.csv")
+ab2011clipped = load_full_addressbase(
+    addressbase_schema_old,
+    ADDRESSBASE_DIRECTORY_INTERIM / "greater_london_2011_abplus_clipped.csv")
 
-addressbase2021['addressbase_postal'].value_counts()
+len(ab2011full.index)
+# 4168445 rows
+ab2011full['administrative_area'].isna().sum()
+# 19 NAs
+temp = ab2011full[ab2011full['administrative_area'].isna()] 
+# 19 NAs can ignore - not postal addresses
+ab2011full['administrative_area'].value_counts(dropna=False)
 
-```
+len(ab2011clipped.index)
+# 4059727 rows
+ab2011clipped['administrative_area'].isna().sum()
+# No NAs
+ab2011clipped['administrative_area'].value_counts(dropna=False)
 
-Load and examine 2011 AB Plus
-
-```{python}
-
-addressbase2011 = pd.read_csv(
-    ADDRESS_BASE_DIRECTORY / "2011" / "greater_london_2011_abplus.csv"
-)
-
-addressbase2011['postal_address'].value_counts()
-print(addressbase2021['administrative_area'].value_counts())
+del [ab2011full, ab2011clipped, temp]
 
 
-```
+#Addressbase 2021
+ab2021full = load_full_addressbase(
+    addressbase_schema_new,
+    ADDRESSBASE_DIRECTORY_RAW / "2021" / "greater_london_2021_abplus.csv")
+ab2021clipped = load_full_addressbase(
+    addressbase_schema_new,
+    ADDRESSBASE_DIRECTORY_INTERIM / "greater_london_2021_abplus_clipped.csv")
 
-Reading schema
+len(ab2021full.index)
+# 4638995 rows
+ab2021full['administrative_area'].isna().sum()
+# No NAs
+ab2021full['administrative_area'].value_counts(dropna=False)
 
-```{python}
-columns = pd.read_csv(
-    ADDRESS_BASE_DIRECTORY / "addressbase-plus-post-e-39-header.csv",
-    header=None,
-    dtype=str).iloc[0].str.lower().tolist()
- 
+len(ab2021clipped.index)
+# 4638561 rows
+ab2021clipped['administrative_area'].isna().sum()
+# No NAs
+ab2021clipped['administrative_area'].value_counts(dropna=False)
+
+del [ab2021full, ab2021clipped]
+
+
+#Addressbase 2026
+ab2026full = load_full_addressbase(
+    addressbase_schema_new,
+    ADDRESSBASE_DIRECTORY_RAW / "2026" / "greater_london_2026_abplus.csv")
+ab2026clipped = load_full_addressbase(
+    addressbase_schema_new,
+    ADDRESSBASE_DIRECTORY_INTERIM / "greater_london_2026_abplus_clipped.csv")
+
+len(ab2026full.index)
+# 5269531 rows
+ab2026full['administrative_area'].isna().sum()
+# No NAs
+ab2026full['administrative_area'].value_counts(dropna=False)
+
+len(ab2026clipped.index)
+# 4842842 rows
+ab2026clipped['administrative_area'].isna().sum()
+# No NAs
+ab2026clipped['administrative_area'].value_counts(dropna=False)
+
+del [ab2026full, ab2026clipped]
+
 ```
