@@ -141,4 +141,3 @@ def clip_greater_london(df):
 
     df = df[df['administrative_area'].isin(LONDON_BOROUGHS)]
     return df
-

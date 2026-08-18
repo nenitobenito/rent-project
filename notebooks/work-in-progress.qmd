@@ -20,7 +20,7 @@ from rent_project.load.addressbase import (
 )
 ```
 
-Examine AddressBase 2011, 2021, 2026 - full and clipped
+AddressBase 2011, 2021, 2026 - check clipping
 
 ```{python}
 #Load schemas
@@ -34,7 +34,6 @@ ab2011full = load_full_addressbase(
 ab2011clipped = load_full_addressbase(
     addressbase_schema_old,
     ADDRESSBASE_DIRECTORY_INTERIM / "greater_london_2011_abplus_clipped.csv")
-
 len(ab2011full.index)
 # 4168445 rows
 ab2011full['administrative_area'].isna().sum()
@@ -42,15 +41,12 @@ ab2011full['administrative_area'].isna().sum()
 temp = ab2011full[ab2011full['administrative_area'].isna()] 
 # 19 NAs can ignore - not postal addresses
 ab2011full['administrative_area'].value_counts(dropna=False)
-
 len(ab2011clipped.index)
 # 4059727 rows
 ab2011clipped['administrative_area'].isna().sum()
 # No NAs
 ab2011clipped['administrative_area'].value_counts(dropna=False)
-
 del [ab2011full, ab2011clipped, temp]
-
 
 #Addressbase 2021
 ab2021full = load_full_addressbase(
@@ -59,21 +55,17 @@ ab2021full = load_full_addressbase(
 ab2021clipped = load_full_addressbase(
     addressbase_schema_new,
     ADDRESSBASE_DIRECTORY_INTERIM / "greater_london_2021_abplus_clipped.csv")
-
 len(ab2021full.index)
 # 4638995 rows
 ab2021full['administrative_area'].isna().sum()
 # No NAs
 ab2021full['administrative_area'].value_counts(dropna=False)
-
 len(ab2021clipped.index)
 # 4638561 rows
 ab2021clipped['administrative_area'].isna().sum()
 # No NAs
 ab2021clipped['administrative_area'].value_counts(dropna=False)
-
 del [ab2021full, ab2021clipped]
-
 
 #Addressbase 2026
 ab2026full = load_full_addressbase(
@@ -82,19 +74,16 @@ ab2026full = load_full_addressbase(
 ab2026clipped = load_full_addressbase(
     addressbase_schema_new,
     ADDRESSBASE_DIRECTORY_INTERIM / "greater_london_2026_abplus_clipped.csv")
-
 len(ab2026full.index)
 # 5269531 rows
 ab2026full['administrative_area'].isna().sum()
 # No NAs
 ab2026full['administrative_area'].value_counts(dropna=False)
-
 len(ab2026clipped.index)
 # 4842842 rows
 ab2026clipped['administrative_area'].isna().sum()
 # No NAs
 ab2026clipped['administrative_area'].value_counts(dropna=False)
-
 del [ab2026full, ab2026clipped]
 
 ```

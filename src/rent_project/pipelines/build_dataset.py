@@ -79,6 +79,45 @@ def step_clip_addressbase_all_years(addressbase_schema_old, addressbase_schema_n
         addressbase.to_csv(output_path, index=False)
 
 
+def step_load_addressbase_by_year(addressbase_schema_old, addressbase_schema_new):
+    """Loads the clipped AddressBase Plus CSVs for 2011, 2021, 2026.
+    Returns AddressBase Plus dictionary.
+    """
+
+    schema_by_year = {
+        2011: addressbase_schema_old,
+        2021: addressbase_schema_new,
+        2026: addressbase_schema_new,
+    }
+
+    addressbase_by_year = {}
+    for year in [2011, 2021, 2026]:
+        print(f"Loading {year} AddressBase Plus (clipped)")
+        input_path = ADDRESSBASE_DIRECTORY_INTERIM / f"greater_london_{year}_abplus_clipped.csv"
+        addressbase_by_year[year] = load_full_addressbase(schema_by_year[year], input_path)
+
+    return addressbase_by_year
+
+def step_clip_addressbase_test_area(addressbase_dictionary):
+    """Takes AddressBase Plus dictionary.
+    Filters it by British National Grid x and y mins and maxes.
+    Returns filtered AddressBase Plus dictionary.
+    """
+
+    # Chippendale Street
+    x_min, x_max = 535642, 535701
+    y_min, y_max = 186022, 186074
+
+    test_area = {}
+    for year, df in addressbase_dictionary.items():
+        test_area[year] = df[
+            (df["x_coordinate"] >= x_min) & (df["x_coordinate"] <= x_max) &
+            (df["y_coordinate"] >= y_min) & (df["y_coordinate"] <= y_max)
+        ]
+    
+    return test_area
+
+
 def main():
 
     addressbase_schema_old = load_schema_old(ADDRESSBASE_DIRECTORY_RAW / "addressbase-plus-pre-e-39-header.csv")
@@ -86,10 +125,10 @@ def main():
 
     step_build_addressbase2026(addressbase_schema_new)
     step_clip_addressbase_all_years(addressbase_schema_old, addressbase_schema_new)
+    addressbase_by_year = step_load_addressbase_by_year(addressbase_schema_old, addressbase_schema_new)
+    addressbase_by_year = step_clip_addressbase_test_area(addressbase_by_year)
 
-    # step_load_addressbase_all_years()
-    # step_subset_test_area()
-    # step_build_addressbase_history()
+    # step_build_addressbase_panel()
     # step_filter_residential()
     # next step goes here
 
